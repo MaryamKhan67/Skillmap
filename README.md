@@ -20,16 +20,11 @@
 ---
 
 ## 🛠️ Tech Stack
-| Frontend | Backend | AI/ML | Database |
-|----------|----------|-------|----------|
-| React, TailwindCSS, D3.js | Node.js, Express | Custom AI skill recommendation engine | MongoDB |
+| Frontend | Backend | AI/ML | 
+|----------|----------|-------|
+| React, TailwindCSS, D3.js | Node.js, Express | Custom AI skill recommendation engine |
 
 ---
-
-## 📸 Screenshots
-<p align="center">
-  <img src="https://via.placeholder.com/800x400?text=Constellation+UI+Demo" alt="SkillMap Demo"/>
-</p>
 
 ---
 
