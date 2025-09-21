@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Constellation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* [Keep all your existing styles] */
+        /* ... existing styles ... */
+
+         body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, #0B0F2D, #000000);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .title-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .subtitle-font {
+            font-family: 'Exo 2', sans-serif;
+        }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border-radius: 12px;
+        }
+        
+        .glow {
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .skill-node {
+            transition: all 0.3s ease;
+        }
+        
+        .skill-node:hover {
+            transform: scale(1.1);
+        }
+        
+        .connection-line {
+            stroke-dasharray: 5;
+            animation: dash 30s linear infinite;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 1000;
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(138, 43, 226, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(138, 43, 226, 0.8);
+        }
+        
+        /* Draggable elements */
+        .draggable {
+            cursor: grab;
+            user-select: none;
+        }
+        
+        .draggable:active {
+            cursor: grabbing;
+        }
+        
+        /* Zoom controls */
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+        
+        /* Sidebar transitions */
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px 2px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 10px 5px rgba(0, 255, 255, 0.8); }
+        }
+        
+        @keyframes targetGlow {
+            0%, 100% { box-shadow: 0 0 10px 5px rgba(138, 43, 226, 0.7); }
+            50% { box-shadow: 0 0 20px 10px rgba(138, 43, 226, 0.9); }
+        }
+        
+        @keyframes lineGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+        
+        .constellation-container {
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            height: 500px;
+        }
+        
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            animation: pulse 3s infinite ease-in-out, glow 3s infinite alternate;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0B0F2D;
+            font-size: 10px;
+            text-align: center;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+        
+        .star:hover {
+            transform: scale(1.3);
+            animation: none;
+            box-shadow: 0 0 15px 8px rgba(0, 255, 255, 0.9);
+            z-index: 100;
+        }
+        
+        .target-star {
+            background: linear-gradient(135deg, #8a2be2, #00ffff);
+            animation: pulse 2s infinite ease-in-out, targetGlow 2s infinite alternate;
+            z-index: 20;
+        }
+        
+        .connection-line {
+            position: absolute;
+            background: linear-gradient(90deg, rgba(0, 255, 255, 0.3), rgba(138, 43, 226, 0.3));
+            height: 1px;
+            transform-origin: 0 0;
+            z-index: 5;
+            animation: lineGlow 4s infinite alternate;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 30;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .star:hover + .tooltip {
+            opacity: 1;
+        }
+
+        /* Node color variants */
+        .known-skill {
+            background: linear-gradient(135deg, #00ffa2, #00c36a); /* green */
+        }
+
+        .missing-skill {
+            background: linear-gradient(135deg, #ff5a5a, #c81d25); /* red */
+        }
+
+        .in-progress-skill {
+            background: linear-gradient(135deg, #8a2be2, #00ffff); /* purple to cyan */
+        }
+
+        /* Tooltip nicely above the star */
+        .node-wrapper .tooltip {
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: -28px;
+        }
+        
+        /* Simplified constellation */
+        .simplified-constellation {
+            background: rgba(11, 15, 45, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .star span {
+    color: #0B0F2D;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2px;
+    box-sizing: border-box;
+}
+    </style>
+</head>
+<body class="relative">
+    <!-- Background elements -->
+    <div class="fixed inset-0 overflow-hidden">
+        <div class="absolute inset-0"></div>
+    </div>
+    
+    <!-- Main content -->
+    <div class="relative z-10 container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="relative mb-12">
+            <!-- Logo positioned absolutely in top-left corner -->
+            <div class="fixed top-0 left-0 p-4 z-20 flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center relative">
+                    <div class="absolute w-8 h-8 rounded-full bg-cyan-500 opacity-20 animate-ping"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-1 h-1 bg-white rounded-full absolute top-0 left-1"></div>
+                    <div class="w-1 h-1 bg-white rounded-full absolute bottom-1 right-0"></div>
+                </div>
+                <span class="title-font text-xl text-white">SkillMap</span>
+            </div>
+            
+            <!-- Navigation controls -->
+            <div class="fixed top-0 right-0 p-4 z-20 flex space-x-4">
+                <button id="add-skill-btn" class="glass-panel px-4 py-2 flex items-center hover:bg-cyan-500/10 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Add Skill
+                </button>
+                <button id="export-btn" class="glass-panel px-4 py-2 flex items-center hover:bg-purple-500/10 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Export
+                </button>
+            </div>
+            
+            <!-- Main header content centered -->
+            <div class="text-center pt-12">
+                <h1 class="title-font text-2xl md:text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                    Your Learning Constellation
+                </h1>
+                <p class="subtitle-font text-lg text-gray-300 max-w-2xl mx-auto">
+                    Explore your skills galaxy. The central star represents your core role, while surrounding nodes show your current skills and learning opportunities.
+                </p>
+            </div>
+        </header>
+        
+        <!-- AI Suggestion Block -->
+        <div class="mb-8 p-6 rounded-lg bg-gray-800 border border-gray-700 w-full max-w-2xl mx-auto">
+            <h2 class="text-xl font-semibold mb-4 text-cyan-300">AI Suggestion</h2>
+            <p id="ai-suggestion" class="text-gray-300">Loading suggestions...</p>
+        </div>
+        
+        <!-- Main constellation area -->
+        <div class="relative mb-12 overflow-hidden">
+            <!-- Constellation Container -->
+            <div id="constellation" class="constellation-container simplified-constellation w-full max-w-4xl mx-auto rounded-lg border border-gray-700 shadow-lg">
+                <!-- Central node will be added here by JavaScript -->
+            </div>
+            
+            <!-- Zoom controls -->
+            <div class="zoom-controls glass-panel p-2 flex flex-col space-y-2">
+                <button id="zoom-in" class="p-2 hover:bg-cyan-500/20 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button id="zoom-out" class="p-2 hover:bg-purple-500/20 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button id="reset-zoom" class="p-2 hover:bg-gray-500/20 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Sidebars -->
+        <div id="left-sidebar" class="glass-panel fixed left-0 top-1/2 transform -translate-y-1/2 h-3/4 w-64 p-4 sidebar">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="title-font text-lg text-cyan-400">Skills List</h3>
+                <button id="toggle-left-sidebar" class="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div id="skills-list" class="overflow-y-auto h-[calc(100%-40px)] pr-2">
+                <!-- Skills will be added here by JavaScript -->
+            </div>
+        </div>
+        
+        <div id="right-sidebar" class="glass-panel fixed right-0 top-1/2 transform -translate-y-1/2 h-3/4 w-80 p-6 sidebar">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="skill-title" class="title-font text-xl text-cyan-400">Skill Details</h3>
+                <button id="toggle-right-sidebar" class="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div id="skill-details" class="overflow-y-auto h-[calc(100%-40px)] pr-2">
+                <div id="skill-description" class="text-gray-300 mb-4 text-sm"></div>
+                <div class="mb-4">
+                    <div class="flex items-center mb-2">
+                        <span class="inline-block w-3 h-3 rounded-full mr-2 bg-cyan-400"></span>
+                        <span class="text-sm font-medium">Status:</span>
+                        <span id="skill-status" class="ml-2 text-sm"></span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 rounded-full mr-2 bg-purple-500"></span>
+                        <span class="text-sm font-medium">Priority:</span>
+                        <span id="skill-priority" class="ml-2 text-sm"></span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Progress:</label>
+                    <div class="flex items-center space-x-2">
+                        <input id="skill-progress" type="range" min="0" max="100" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <span id="skill-progress-value" class="text-sm w-12 text-center">0%</span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Tags:</label>
+                    <div id="skill-tags" class="flex flex-wrap gap-2">
+                        <!-- Tags will be added here -->
+                    </div>
+                    <div class="mt-2 flex">
+                        <input id="new-tag-input" type="text" placeholder="Add tag" class="flex-grow bg-gray-800 text-white text-sm rounded-l px-3 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                        <button id="add-tag-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded-r text-sm">Add</button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h4 class="font-medium text-gray-300 mb-2">AI Suggestions:</h4>
+                    <p id="ai-suggestions" class="text-sm text-gray-400"></p>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-300 mb-2">Resources:</h4>
+                    <ul id="resource-links" class="text-sm space-y-2"></ul>
+                    <div class="mt-2 flex">
+                        <input id="new-resource-input" type="text" placeholder="Add resource URL" class="flex-grow bg-gray-800 text-white text-sm rounded-l px-3 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                        <button id="add-resource-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-r text-sm">Add</button>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-800 flex space-x-2">
+                    <button id="save-skill" class="flex-grow bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                        Save Changes
+                    </button>
+                    <button id="delete-skill" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-all duration-300">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="glass-panel max-w-4xl mx-auto p-6 mb-12">
+            <h3 class="title-font text-xl text-cyan-400 mb-4">Constellation Legend</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex items-center">
+                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-cyan-500 mr-3 glow"></div>
+                    <span>Your current role</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-6 h-6 rounded-full known-skill mr-3 glow"></div>
+                    <span>Skills you've mastered</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-6 h-6 rounded-full in-progress-skill mr-3 glow pulse"></div>
+                    <span>Skills in progress</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-6 h-6 rounded-full missing-skill mr-3 glow"></div>
+                    <span>Missing prerequisite skills</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-6 h-6 rounded-full border-2 border-gray-400 mr-3"></div>
+                    <span>Skills not yet started</span>
+                </div>
+                <div class="flex items-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" class="mr-3">
+                        <line x1="0" y1="12" x2="24" y2="12" stroke="#00FFFF" stroke-width="2" stroke-dasharray="5" />
+                    </svg>
+                    <span>Skill dependencies</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // State variables
+    let currentZoom = 1;
+    let selectedSkill = null;
+    let isDragging = false;
+    let dragStartX, dragStartY;
+    let offsetX = 0, offsetY = 0;
+    let isLeftSidebarOpen = true;
+    let isRightSidebarOpen = true;
+    let userSkills = [];
+    let suggestedSkills = [];
+    let targetRole = "";
+    let skillGraph = {}; // Will store our skill connections
+
+    // Predefined skill graph with logical connections
+    const predefinedSkillGraph = {
+        // Frontend path
+        "HTML": { next: ["CSS", "JavaScript"], category: "frontend" },
+        "CSS": { next: ["JavaScript", "Sass", "Responsive Design"], category: "frontend" },
+        "JavaScript": { next: ["React", "Vue", "Angular", "Node.js", "TypeScript"], category: "frontend" },
+        "React": { next: ["Redux", "React Router", "Next.js"], category: "frontend" },
+        "Vue": { next: ["Vuex", "Vue Router", "Nuxt.js"], category: "frontend" },
+        "Angular": { next: ["RxJS", "NgRx"], category: "frontend" },
+        "TypeScript": { next: [], category: "frontend" },
+        
+        // Backend path
+        "Node.js": { next: ["Express.js", "NestJS", "Databases"], category: "backend" },
+        "Express.js": { next: ["REST APIs", "Authentication", "WebSockets"], category: "backend" },
+        "NestJS": { next: ["Microservices", "GraphQL"], category: "backend" },
+        "Databases": { next: ["SQL", "MongoDB", "PostgreSQL"], category: "backend" },
+        "SQL": { next: ["Database Design", "Query Optimization"], category: "backend" },
+        "MongoDB": { next: ["Mongoose", "Aggregation Pipeline"], category: "backend" },
+        "REST APIs": { next: ["API Design", "API Security"], category: "backend" },
+        "GraphQL": { next: ["Apollo", "Relay"], category: "backend" },
+        
+        // DevOps path
+        "Git": { next: ["CI/CD", "Docker"], category: "devops" },
+        "Docker": { next: ["Kubernetes", "AWS", "Azure"], category: "devops" },
+        "Kubernetes": { next: ["Helm", "Service Mesh"], category: "devops" },
+        "CI/CD": { next: ["Jenkins", "GitHub Actions", "GitLab CI"], category: "devops" },
+        
+        // Design path
+        "Figma": { next: ["UI Design", "Prototyping"], category: "design" },
+        "Photoshop": { next: ["Photo Editing", "Graphic Design"], category: "design" },
+        "Illustrator": { next: ["Vector Graphics", "Logo Design"], category: "design" },
+        "UI Design": { next: ["UX Design", "Design Systems"], category: "design" },
+        "UX Design": { next: ["User Research", "Usability Testing"], category: "design" },
+        
+        // Data Science path
+        "Python": { next: ["Pandas", "NumPy", "Machine Learning"], category: "datascience" },
+        "Pandas": { next: ["Data Analysis", "Data Visualization"], category: "datascience" },
+        "NumPy": { next: ["Scientific Computing", "Linear Algebra"], category: "datascience" },
+        "Machine Learning": { next: ["Deep Learning", "Scikit-learn", "TensorFlow"], category: "datascience" },
+        "Deep Learning": { next: ["Neural Networks", "Computer Vision", "NLP"], category: "datascience" }
+    };
+
+    // Role definitions with required skills
+    const roleDefinitions = {
+        "frontend": ["HTML", "CSS", "JavaScript", "React", "Responsive Design"],
+        "backend": ["JavaScript", "Node.js", "Express.js", "Databases", "REST APIs"],
+        "fullstack": ["HTML", "CSS", "JavaScript", "React", "Node.js", "Express.js", "Databases"],
+        "ui-ux": ["Figma", "UI Design", "UX Design", "Prototyping"],
+        "devops": ["Git", "Docker", "CI/CD", "Kubernetes"],
+        "data-engineer": ["Python", "SQL", "Databases", "Data Processing"],
+        "ml-engineer": ["Python", "Machine Learning", "Deep Learning", "TensorFlow"]
+    };
+
+    // Initialize the constellation
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log("🔵 Constellation page loaded");
+        
+        // Get user data from localStorage
+        let userProfile = JSON.parse(localStorage.getItem("userProfile"));
+        console.log("🔵 User profile from localStorage:", userProfile);
+        
+        if (!userProfile) {
+            console.error("🔴 No user profile found, redirecting to onboarding");
+            window.location.href = "onboarding.html";
+            return;
+        }
+        
+        userSkills = userProfile.knownSkills || [];
+        targetRole = userProfile.targetRole || "frontend";
+        
+        console.log("🔵 Starting with:", {userSkills, targetRole});
+        
+        // Generate AI suggestions based on user profile
+        await generateAISuggestions(userProfile);
+        
+        console.log("🔵 After generateAISuggestions:", {suggestedSkills});
+        
+        // Render the constellation
+        renderConstellation(userSkills, suggestedSkills, targetRole);
+        
+        // Render skills list
+        renderSkillsList(userSkills, suggestedSkills);
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        console.log("🔵 Constellation initialization complete");
+    });
+
+    async function generateAISuggestions(userProfile) {
+        try {
+            console.log("🟡 Attempting to fetch AI suggestions from backend...");
+            console.log("🟡 Sending data:", {
+                knownSkills: userSkills,
+                targetRole: userProfile.targetRole
+            });
+
+            const response = await fetch('http://localhost:3000/get-skill-suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    knownSkills: userSkills,
+                    targetRole: userProfile.targetRole
+                })
+            });
+            
+            console.log("🟡 Response status:", response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log("🟢 AI suggestions received:", data);
+                suggestedSkills = data.suggestedSkills || [];
+            } else {
+                console.error("🔴 API error:", response.status, response.statusText);
+                const errorText = await response.text();
+                console.error("🔴 Error response:", errorText);
+                suggestedSkills = generateFallbackSuggestions(userSkills, userProfile.targetRole);
+            }
+        } catch (error) {
+            console.error("🔴 API request failed:", error);
+            suggestedSkills = generateFallbackSuggestions(userSkills, userProfile.targetRole);
+        }
+        
+        // Update AI suggestion text
+        document.getElementById("ai-suggestion").innerText =
+            "Suggested skills: " +
+            (suggestedSkills.length > 0 
+                ? suggestedSkills
+                    .map(s => `${s.name} (${s.difficulty}${s.relatedTo ? ` → requires ${s.relatedTo}` : ""})`)
+                    .join(", ")
+                : "No suggestions available. Check backend connection.");
+            
+        console.log("🟡 Final suggested skills:", suggestedSkills);
+    }
+
+    function generateFallbackSuggestions(knownSkills, targetRole) {
+        // Find path from known skills to target role using our predefined graph
+        const targetSkills = roleDefinitions[targetRole] || [];
+        const suggestions = [];
+        
+        // For each target skill, find the shortest path from known skills
+        for (const targetSkill of targetSkills) {
+            // Skip if user already knows this skill
+            if (knownSkills.includes(targetSkill)) continue;
+            
+            // Find the shortest path to this target skill
+            const path = findShortestPathToSkill(knownSkills, targetSkill);
+            
+            if (path && path.length > 1) {
+                // Add all skills in the path (except the known ones) as suggestions
+                for (let i = 1; i < path.length; i++) {
+                    const skill = path[i];
+                    if (!knownSkills.includes(skill) && !suggestions.find(s => s.name === skill)) {
+                        suggestions.push({
+                            name: skill,
+                            difficulty: getDifficulty(skill),
+                            relatedTo: path[i-1] // The prerequisite skill
+                        });
+                    }
+                }
+            }
+        }
+        
+        return suggestions;
+    }
+
+    function findShortestPathToSkill(knownSkills, targetSkill) {
+        // BFS to find shortest path from any known skill to target skill
+        const queue = [];
+        const visited = new Set();
+        const paths = {};
+        
+        // Initialize with all known skills
+        for (const skill of knownSkills) {
+            queue.push(skill);
+            visited.add(skill);
+            paths[skill] = [skill];
+        }
+        
+        while (queue.length > 0) {
+            const currentSkill = queue.shift();
+            
+            // Found the target!
+            if (currentSkill === targetSkill) {
+                return paths[currentSkill];
+            }
+            
+            // Get connected skills
+            const connections = predefinedSkillGraph[currentSkill]?.next || [];
+            for (const nextSkill of connections) {
+                if (!visited.has(nextSkill)) {
+                    visited.add(nextSkill);
+                    paths[nextSkill] = [...paths[currentSkill], nextSkill];
+                    queue.push(nextSkill);
+                }
+            }
+        }
+        
+        // No path found
+        return null;
+    }
+
+    function getDifficulty(skillName) {
+        // Simple difficulty estimation
+        const beginnerSkills = ["HTML", "CSS", "Git", "Figma"];
+        const advancedSkills = ["Kubernetes", "Microservices", "Deep Learning", "TensorFlow"];
+        
+        if (beginnerSkills.includes(skillName)) return "Beginner";
+        if (advancedSkills.includes(skillName)) return "Advanced";
+        return "Intermediate";
+    }
+
+    function renderConstellation(knownSkills, suggestedSkills, targetRole) {
+        console.log("🎨 Rendering constellation with:", {
+            knownSkills, 
+            suggestedSkills, 
+            targetRole
+        });
+        
+        const container = document.getElementById('constellation');
+        container.innerHTML = '';
+        
+        // Set container dimensions
+        const width = container.offsetWidth;
+        const height = container.offsetHeight;
+        
+        // Create center target node
+        const centerX = width / 2;
+        const centerY = height / 2;
+        createStar(centerX, centerY, targetRole, true, 'target');
+        
+        // Create known skills (green nodes)
+        const knownRadius = Math.min(width, height) * 0.3;
+        const knownAngleStep = (2 * Math.PI) / Math.max(knownSkills.length, 1);
+        console.log("🟢 Creating", knownSkills.length, "known skills");
+
+        knownSkills.forEach((skill, index) => {
+            const angle = knownAngleStep * index;
+            const x = centerX + knownRadius * Math.cos(angle);
+            const y = centerY + knownRadius * Math.sin(angle);
+            
+            console.log("  🟢 Known skill:", skill, "at position:", x, y);
+            createStar(x, y, skill, false, 'known');
+            createConnectionLine(x, y, centerX, centerY, 'solid');
+        });
+        
+        // Create suggested skills (red nodes) with logical connections
+        const suggestedRadius = Math.min(width, height) * 0.5;
+        const suggestedAngleStep = (2 * Math.PI) / Math.max(suggestedSkills.length, 1);
+        console.log("🔴 Creating", suggestedSkills.length, "suggested skills");
+
+        suggestedSkills.forEach((skillObj, index) => {
+            const skillName = skillObj.name;
+            const relatedTo = skillObj.relatedTo;
+            console.log("  🔴 Suggested skill:", skillName, "related to:", relatedTo);
+
+            // Simple circular placement for suggested skills
+            const angle = suggestedAngleStep * index;
+            const x = centerX + suggestedRadius * Math.cos(angle);
+            const y = centerY + suggestedRadius * Math.sin(angle);
+            
+            createStar(x, y, skillName, false, 'missing');
+            
+            // Connect to center
+            createConnectionLine(x, y, centerX, centerY, 'dashed');
+            
+            // Connect to related skill if specified and exists in the constellation
+            if (relatedTo) {
+                const relatedSkillElement = document.querySelector(`[data-skill="${relatedTo}"]`);
+                if (relatedSkillElement) {
+                    const relatedRect = relatedSkillElement.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    const relatedX = parseFloat(relatedSkillElement.style.left) + relatedRect.width/2;
+                    const relatedY = parseFloat(relatedSkillElement.style.top) + relatedRect.height/2;
+                    
+                    createConnectionLine(x, y, relatedX, relatedY, 'dashed');
+                }
+            }
+        });
+    }
+    
+    function createStar(x, y, name, isTarget, type) {
+        const size = isTarget ? 50 : 30;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'node-wrapper draggable';
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = `${x - size/2}px`;
+        wrapper.style.top = `${y - size/2}px`;
+        wrapper.dataset.skill = name;
+        
+        // Create the star element
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        
+        // Set color based on type
+        if (isTarget) {
+            star.classList.add('target-star');
+        } else if (type === 'known') {
+            star.classList.add('known-skill');
+        } else if (type === 'missing') {
+            star.classList.add('missing-skill');
+        } else if (type === 'in-progress') {
+            star.classList.add('in-progress-skill');
+        }
+        
+        // Add skill name (truncate if too long)
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = name.length > 10 ? name.substring(0, 10) + '...' : name;
+        nameSpan.style.fontSize = size / 5 + 'px';
+        star.appendChild(nameSpan);
+        
+        // Create tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = name;
+        
+        wrapper.appendChild(star);
+        wrapper.appendChild(tooltip);
+        
+        // Add to container
+        document.getElementById('constellation').appendChild(wrapper);
+        
+        // Add click event
+        wrapper.addEventListener('click', function(e) {
+            selectSkill({
+                id: name.toLowerCase().replace(/\s+/g, '-'),
+                name: name,
+                description: `This is ${name} skill.`,
+                status: type === 'known' ? 'completed' : 'not-started',
+                priority: type === 'missing' ? 'high' : 'medium'
+            });
+        });
+        
+        return wrapper;
+    }
+    
+    function createConnectionLine(x1, y1, x2, y2, lineType) {
+        const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        
+        const line = document.createElement('div');
+        line.className = 'connection-line';
+        line.style.width = `${length}px`;
+        line.style.left = `${x1}px`;
+        line.style.top = `${y1}px`;
+        line.style.transform = `rotate(${angle}deg)`;
+        line.style.animationDelay = `${Math.random() * 2}s`;
+        
+        if (lineType === 'dashed') {
+            line.style.background = 'linear-gradient(90deg, rgba(138, 43, 226, 0.3), rgba(255, 90, 90, 0.3))';
+            line.style.borderBottom = '1px dashed rgba(255, 90, 90, 0.5)';
+        }
+        
+        document.getElementById('constellation').appendChild(line);
+    }
+
+    function renderSkillsList(knownSkills, suggestedSkills) {
+        const skillsList = document.getElementById('skills-list');
+        skillsList.innerHTML = '';
+        
+        // Add known skills
+        knownSkills.forEach(skill => {
+            const skillItem = document.createElement('div');
+            skillItem.className = 'flex items-center p-2 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 cursor-pointer';
+            skillItem.innerHTML = `
+                <div class="w-3 h-3 rounded-full bg-green-500 mr-3"></div>
+                <span class="text-sm">${skill}</span>
+            `;
+            skillItem.addEventListener('click', () => {
+                selectSkill({
+                    id: skill.toLowerCase().replace(/\s+/g, '-'),
+                    name: skill,
+                    description: `You have mastered ${skill}.`,
+                    status: 'completed',
+                    priority: 'low'
+                });
+            });
+            skillsList.appendChild(skillItem);
+        });
+        
+        // Add suggested skills
+        suggestedSkills.forEach(skillObj => {
+            const skill = skillObj.name;
+            const skillItem = document.createElement('div');
+            skillItem.className = 'flex items-center p-2 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 cursor-pointer';
+            skillItem.innerHTML = `
+                <div class="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
+                <span class="text-sm">${skill}</span>
+                <span class="ml-auto text-xs text-gray-400">${skillObj.difficulty}</span>
+            `;
+            skillItem.addEventListener('click', () => {
+                selectSkill({
+                    id: skill.toLowerCase().replace(/\s+/g, '-'),
+                    name: skill,
+                    description: `Suggested skill: ${skill}. ${skillObj.relatedTo ? 'Related to ' + skillObj.relatedTo : ''}`,
+                    status: 'not-started',
+                    priority: skillObj.difficulty === 'Beginner' ? 'low' : 
+                             skillObj.difficulty === 'Intermediate' ? 'medium' : 'high'
+                });
+            });
+            skillsList.appendChild(skillItem);
+        });
+    }
+
+    function setupEventListeners() {
+        // Zoom controls
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            currentZoom += 0.1;
+            updateZoom();
+        });
+        
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            currentZoom = Math.max(0.5, currentZoom - 0.1);
+            updateZoom();
+        });
+        
+        document.getElementById('reset-zoom').addEventListener('click', () => {
+            currentZoom = 1;
+            offsetX = 0;
+            offsetY = 0;
+            updateZoom();
+        });
+        
+        // Sidebar toggles
+        document.getElementById('toggle-left-sidebar').addEventListener('click', () => {
+            toggleSidebar('left');
+        });
+        
+        document.getElementById('toggle-right-sidebar').addEventListener('click', () => {
+            toggleSidebar('right');
+        });
+        
+        // Constellation dragging
+        const constellation = document.getElementById('constellation');
+        constellation.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', endDrag);
+        
+        // Skill progress slider
+        const progressSlider = document.getElementById('skill-progress');
+        progressSlider.addEventListener('input', function() {
+            document.getElementById('skill-progress-value').textContent = this.value + '%';
+        });
+        
+        // Add skill button
+        document.getElementById('add-skill-btn').addEventListener('click', function() {
+            const skillName = prompt('Enter a new skill to add:');
+            if (skillName && skillName.trim() !== '') {
+                // Add to user skills
+                userSkills.push(skillName);
+                
+                // Update localStorage
+                const userProfile = JSON.parse(localStorage.getItem("userProfile")) || {};
+                userProfile.knownSkills = userSkills;
+                localStorage.setItem("userProfile", JSON.stringify(userProfile));
+                
+                // Re-render constellation
+                renderConstellation(userSkills, suggestedSkills, targetRole);
+                renderSkillsList(userSkills, suggestedSkills);
+            }
+        });
+        
+        // Export button
+        document.getElementById('export-btn').addEventListener('click', function() {
+            // Create a data URL for the constellation
+            html2canvas(constellation).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'skill-constellation.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+    }
+
+    function updateZoom() {
+        const container = document.getElementById('constellation');
+        container.style.transform = `scale(${currentZoom}) translate(${offsetX}px, ${offsetY}px)`;
+    }
+
+    function startDrag(e) {
+        isDragging = true;
+        dragStartX = e.clientX - offsetX;
+        dragStartY = e.clientY - offsetY;
+        document.getElementById('constellation').style.cursor = 'grabbing';
+    }
+
+    function drag(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        offsetX = e.clientX - dragStartX;
+        offsetY = e.clientY - dragStartY;
+        updateZoom();
+    }
+
+    function endDrag() {
+        isDragging = false;
+        document.getElementById('constellation').style.cursor = 'grab';
+    }
+
+    function toggleSidebar(side) {
+        if (side === 'left') {
+            isLeftSidebarOpen = !isLeftSidebarOpen;
+            document.getElementById('left-sidebar').style.transform = 
+                isLeftSidebarOpen ? 'translateX(0)' : 'translateX(-100%)';
+        } else {
+            isRightSidebarOpen = !isRightSidebarOpen;
+            document.getElementById('right-sidebar').style.transform = 
+                isRightSidebarOpen ? 'translateX(0)' : 'translateX(100%)';
+        }
+    }
+
+    function selectSkill(skill) {
+        selectedSkill = skill;
+        
+        // Update UI
+        document.getElementById('skill-title').textContent = skill.name;
+        document.getElementById('skill-description').textContent = skill.description;
+        document.getElementById('skill-status').textContent = skill.status === 'completed' ? 'Completed' : 'Not Started';
+        document.getElementById('skill-priority').textContent = skill.priority.charAt(0).toUpperCase() + skill.priority.slice(1);
+        document.getElementById('skill-progress').value = skill.status === 'completed' ? 100 : 0;
+        document.getElementById('skill-progress-value').textContent = (skill.status === 'completed' ? 100 : 0) + '%';
+        
+        // Clear and add tags
+        const tagsContainer = document.getElementById('skill-tags');
+        tagsContainer.innerHTML = '';
+        const defaultTags = skill.status === 'completed' ? ['mastered', 'expert'] : ['to-learn', skill.priority];
+        defaultTags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded';
+            tagElement.textContent = tag;
+            tagsContainer.appendChild(tagElement);
+        });
+        
+        // Add AI suggestions
+        document.getElementById('ai-suggestions').textContent = 
+            skill.status === 'completed' 
+            ? `Great job mastering ${skill.name}! Consider mentoring others or exploring advanced topics.` 
+            : `Start with tutorials on ${skill.name}. Practice daily and build small projects to reinforce learning.`;
+        
+        // Add resource links
+        const resourcesContainer = document.getElementById('resource-links');
+        resourcesContainer.innerHTML = '';
+        const defaultResources = [
+            { name: 'MDN Web Docs', url: 'https://developer.mozilla.org' },
+            { name: 'FreeCodeCamp', url: 'https://www.freecodecamp.org' },
+            { name: 'YouTube Tutorials', url: 'https://www.youtube.com' }
+        ];
+        defaultResources.forEach(resource => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="${resource.url}" target="_blank" class="text-cyan-400 hover:underline">${resource.name}</a>`;
+            resourcesContainer.appendChild(li);
+        });
+        
+        // Show the right sidebar if it's hidden
+        if (!isRightSidebarOpen) {
+            toggleSidebar('right');
+        }
+    }
+
+    // Fallback for html2canvas if not available
+    if (typeof html2canvas === 'undefined') {
+        console.warn("html2canvas not available, export feature will not work");
+        document.getElementById('export-btn').addEventListener('click', function() {
+            alert("Export feature requires html2canvas library. Please include it in your project.");
+        });
+    }
+    </script>
+</body>
+</html>

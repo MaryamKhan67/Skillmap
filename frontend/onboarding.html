@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillMap - Onboarding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Hide scrollbar but keep functionality */
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+        }
+        
+        @keyframes nebula {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite;
+        }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        .neon-input {
+            background: transparent;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .neon-input:focus {
+            border-bottom-color: #00FFFF;
+            box-shadow: 0 10px 15px -10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .glow-button {
+            transition: all 0.3s ease;
+            animation: pulse-glow 2s infinite;
+        }
+        
+        .glow-button:hover {
+            animation: pulse-glow 1s infinite;
+            transform: translateY(-2px);
+        }
+        
+        .skill-chip {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            position: relative;
+            padding-right: 28px;
+        }
+        
+        .skill-chip .delete-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .skill-chip:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .skill-chip .delete-btn:hover {
+            background: rgba(255, 0, 0, 0.5);
+        }
+        
+        .skill-chip:hover, .skill-chip.selected {
+            background: rgba(138, 43, 226, 0.2);
+            border-color: #8A2BE2;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+        
+        .galaxy-bg {
+            background: linear-gradient(135deg, #0B0F2D 0%, #000000 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .galaxy-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 30%, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
+            animation: nebula 30s infinite alternate;
+            z-index: 0;
+        }
+        
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .time-slider {
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+        
+        .time-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00FFFF;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+        }
+        
+        .time-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00FFFF;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+        }
+
+        /* Skill option styling */
+        .skill-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+            text-align: center;
+            padding: 0.5rem 1rem;
+        }
+        
+        .skill-option.selected {
+            background: rgba(138, 43, 226, 0.2);
+            border-color: #8A2BE2;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+        
+        .role-btn {
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            text-align: center;
+        }
+        
+        /* Custom skill input styling */
+        .custom-skill-input {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        
+        .custom-skill-input input {
+            flex: 1;
+            background: transparent;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 0.5rem 0 0 0.5rem;
+            padding: 0.5rem 1rem;
+            color: white;
+        }
+        
+        .custom-skill-input button {
+            background: rgba(0, 255, 255, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-left: none;
+            border-radius: 0 0.5rem 0.5rem 0;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-skill-input button:hover {
+            background: rgba(0, 255, 255, 0.5);
+        }
+        
+        /* Search bar styling */
+        .search-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .search-container input {
+            width: 100%;
+            background: transparent;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            color: white;
+        }
+        
+        .search-container svg {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1rem;
+            height: 1rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="galaxy-bg min-h-screen p-4 font-['Inter'] text-white overflow-auto scrollbar-hide">
+    <!-- Stars background -->
+    <div id="stars-container"></div>
+    
+    <!-- Header -->
+    <header class="w-full max-w-4xl mx-auto mb-8">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center relative">
+                <div class="absolute w-8 h-8 rounded-full bg-cyan-500 opacity-20 animate-ping"></div>
+                <div class="w-2 h-2 bg-white rounded-full"></div>
+                <div class="w-1 h-1 bg-white rounded-full absolute top-0 left-1"></div>
+                <div class="w-1 h-1 bg-white rounded-full absolute bottom-1 right-0"></div>
+            </div>
+            <span class="font-['Orbitron'] text-xl text-white">SkillMap</span>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <div class="content-wrapper w-full max-w-4xl mx-auto mt-0">
+        <div class="glass-panel rounded-xl p-8 relative overflow-hidden">
+            <div class="absolute inset-0 rounded-xl opacity-20" style="background: radial-gradient(circle at 30% 50%, rgba(138, 43, 226, 0.3) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(0, 255, 255, 0.3) 0%, transparent 50%);"></div>
+            <div class="relative z-10">
+                <div class="flex items-center space-x-4 mb-2">
+                    <div class="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center relative">
+                        <div class="absolute w-8 h-8 rounded-full bg-cyan-500 opacity-20 animate-ping"></div>
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                        <div class="w-1 h-1 bg-white rounded-full absolute top-0 left-1"></div>
+                        <div class="w-1 h-1 bg-white rounded-full absolute bottom-1 right-0"></div>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-bold font-['Orbitron'] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                        Create Your Skill Profile
+                    </h1>
+                </div>
+                <p class="text-gray-300 mb-8 font-['Exo 2']">Map your skills and discover your learning path through the cosmos of knowledge</p>
+                
+                <!-- Target Role Selection -->
+                <div class="mb-8">
+                    <label class="block text-lg font-medium mb-3 font-['Exo 2']">What is your target role?</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button type="button" data-role="frontend" class="role-btn bg-gray-700 hover:bg-cyan-600 transition-all font-['Exo 2']">
+                            Frontend Developer
+                        </button>
+                        <button type="button" data-role="backend" class="role-btn bg-gray-700 hover:bg-cyan-600 transition-all font-['Exo 2']">
+                            Backend Developer
+                        </button>
+                        <button type="button" data-role="fullstack" class="role-btn bg-gray-700 hover:bg-cyan-600 transition-all font-['Exo 2']">
+                            Full Stack Developer
+                        </button>
+                        <button type="button" data-role="ui-ux" class="role-btn bg-gray-700 hover:bg-cyan-600 transition-all font-['Exo 2']">
+                            UI/UX Designer
+                        </button>
+                        <button type="button" data-role="devops" class="role-btn bg-gray-700 hover:bg-cyan-600 transition-all font-['Exo 2']">
+                            DevOps Engineer
+                        </button>
+                        <button type="button" data-role="data-engineer" class="role-btn bg-gray-700 hover:bg-cyan-600 transition-all font-['Exo 2']">
+                            Data Engineer
+                        </button>
+                        <button type="button" data-role="ml-engineer" class="role-btn bg-gray-700 hover:bg-cyan-600 transition-all font-['Exo 2']">
+                            ML Engineer
+                        </button>
+                    </div>
+                    <input type="hidden" id="targetRole" name="targetRole" required>
+                </div>
+                
+                <!-- Skills Selection -->
+                <div class="mb-8">
+                    <label class="block text-lg font-medium mb-3 font-['Exo 2']">Select skills you already know:</label>
+                    
+                    <!-- Search Bar -->
+                    <div class="search-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input type="text" id="skill-search" placeholder="Search skills..." class="neon-input">
+                    </div>
+                    
+                    <!-- Custom Skill Input -->
+                    <div class="custom-skill-input">
+                        <input type="text" id="custom-skill" placeholder="Add a skill not listed..." class="neon-input">
+                        <button type="button" id="add-custom-skill">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="skills-container">
+                        <!-- Skills will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-center mt-10">
+                    <button id="generate-constellation" class="glow-button w-full py-3 px-6 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg font-['Orbitron'] font-bold">
+                        Generate My Constellation
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 inline" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create stars background
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            const starCount = 150;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 2 + 1;
+                star.style.width = star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(star);
+            }
+        }
+        
+        createStars();
+
+        // Available skills by category
+        const skillsByCategory = {
+            frontend: ["HTML", "CSS", "JavaScript", "React", "Vue", "Angular", "TypeScript", "Sass", "Responsive Design"],
+            backend: ["Node.js", "Express.js", "Python", "Django", "Flask", "Ruby", "Rails", "PHP", "Laravel", "Databases", "SQL", "MongoDB", "REST APIs", "GraphQL"],
+            devops: ["Git", "Docker", "Kubernetes", "CI/CD", "AWS", "Azure", "Linux", "Bash", "Networking"],
+            design: ["Figma", "Photoshop", "Illustrator", "UI Design", "UX Design", "Wireframing", "Prototyping"],
+            data: ["Python", "R", "SQL", "Pandas", "NumPy", "Data Visualization", "Machine Learning", "TensorFlow", "PyTorch"]
+        };
+        
+        let selectedRole = "";
+        let selectedSkills = [];
+        
+        // Populate skills container with all available skills
+        const skillsContainer = document.getElementById('skills-container');
+        const allSkills = [...new Set(Object.values(skillsByCategory).flat())];
+        
+        function renderSkills(skillsToRender = allSkills) {
+            // Clear the container first
+            skillsContainer.innerHTML = '';
+            
+            skillsToRender.forEach(skill => {
+                const skillElement = document.createElement('div');
+                skillElement.className = 'skill-option bg-gray-700 hover:bg-purple-600 py-2 px-4 rounded-lg transition-colors text-center font-["Exo_2"]';
+                skillElement.textContent = skill;
+                skillElement.dataset.skill = skill;
+                
+                // Check if this skill is already selected
+                if (selectedSkills.includes(skill)) {
+                    skillElement.classList.add('bg-purple-600', 'selected');
+                }
+                
+                skillElement.addEventListener('click', function() {
+                    this.classList.toggle('bg-purple-600');
+                    this.classList.toggle('selected');
+                    
+                    if (this.classList.contains('selected')) {
+                        selectedSkills.push(skill);
+                    } else {
+                        selectedSkills = selectedSkills.filter(s => s !== skill);
+                    }
+                });
+                
+                skillsContainer.appendChild(skillElement);
+            });
+        }
+        
+        // Initial render
+        renderSkills();
+        
+        // Search functionality
+        const searchInput = document.getElementById('skill-search');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            if (searchTerm === '') {
+                renderSkills();
+            } else {
+                const filteredSkills = allSkills.filter(skill => 
+                    skill.toLowerCase().includes(searchTerm)
+                );
+                renderSkills(filteredSkills);
+            }
+        });
+        
+        // Add custom skill functionality
+        const customSkillInput = document.getElementById('custom-skill');
+        const addCustomSkillBtn = document.getElementById('add-custom-skill');
+        
+        addCustomSkillBtn.addEventListener('click', function() {
+            const customSkill = customSkillInput.value.trim();
+            if (customSkill && !allSkills.includes(customSkill)) {
+                // Add to the master list of skills
+                allSkills.push(customSkill);
+                
+                // Add to selected skills
+                selectedSkills.push(customSkill);
+                
+                // Clear the input
+                customSkillInput.value = '';
+                
+                // Re-render skills to include the new one
+                renderSkills();
+            } else if (customSkill && allSkills.includes(customSkill)) {
+                // If skill already exists, just select it
+                if (!selectedSkills.includes(customSkill)) {
+                    selectedSkills.push(customSkill);
+                    renderSkills();
+                }
+                customSkillInput.value = '';
+            }
+        });
+        
+        // Allow adding custom skill by pressing Enter
+        customSkillInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addCustomSkillBtn.click();
+            }
+        });
+        
+        // Role selection
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove selected class from all buttons
+                document.querySelectorAll('.role-btn').forEach(b => {
+                    b.classList.remove('bg-cyan-600');
+                    b.classList.add('bg-gray-700');
+                });
+                
+                // Add selected class to clicked button
+                this.classList.remove('bg-gray-700');
+                this.classList.add('bg-cyan-600');
+                
+                selectedRole = this.dataset.role;
+                document.getElementById('targetRole').value = selectedRole;
+            });
+        });
+        
+        // Generate constellation
+        document.getElementById('generate-constellation').addEventListener('click', function() {
+            if (!selectedRole) {
+                alert('Please select a target role.');
+                return;
+            }
+            
+            if (selectedSkills.length === 0) {
+                if (!confirm('You haven\'t selected any skills. Continue anyway?')) {
+                    return;
+                }
+            }
+            
+            // Store user profile in localStorage
+            const userProfile = {
+                targetRole: selectedRole,
+                knownSkills: selectedSkills
+            };
+            
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+            
+            // Redirect to constellation page
+            window.location.href = 'constellation.html';
+        });
+    });
+    </script>
+</body>
+</html>

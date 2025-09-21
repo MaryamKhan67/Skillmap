@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillMap - Visualize Your Skills Like a Constellation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600;700&display=swap">
+    <style>
+        :root {
+            --navy: #0B0F2D;
+            --cyan: #00FFFF;
+            --purple: #8A2BE2;
+            --dark-purple: #2B1B5E;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--navy) 0%, #000000 100%);
+            color: rgba(255, 255, 255, 0.9);
+            overflow-x: hidden;
+        }
+        
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .glass-panel {
+            background: rgba(11, 15, 45, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+        }
+        
+        .glow-border {
+            position: relative;
+        }
+        
+        .glow-border::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        }
+        
+        .glow-hover:hover {
+            text-shadow: 0 0 12px rgba(0, 255, 255, 0.9);
+        }
+        
+        .btn-cyan {
+            background: linear-gradient(135deg, var(--cyan), rgba(0, 255, 255, 0.7));
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cyan:hover {
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .constellation-node {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 10px 2px var(--cyan);
+        }
+        
+        .constellation-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
+            transform-origin: left center;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 5px 1px white;
+            animation: twinkle 3s infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--cyan);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        #hero {
+            background: radial-gradient(ellipse at bottom, var(--navy) 0%, #000000 100%);
+        }
+        
+        .gradient-underline {
+            position: relative;
+        }
+        
+        .gradient-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+    <!-- Star particles background -->
+    <div id="stars-container" class="fixed inset-0 overflow-hidden pointer-events-none"></div>
+    
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-60 backdrop-filter backdrop-blur-md border-b border-cyan-500 border-opacity-30">
+        <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center relative">
+                    <div class="absolute w-8 h-8 rounded-full bg-cyan-500 opacity-20 animate-ping"></div>
+                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                    <div class="w-1 h-1 bg-white rounded-full absolute top-0 left-1"></div>
+                    <div class="w-1 h-1 bg-white rounded-full absolute bottom-1 right-0"></div>
+                </div>
+                <span class="font-orbitron text-xl text-white">SkillMap</span>
+            </div>
+            
+            <!-- Navigation Links -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#features" class="nav-link text-white hover:text-cyan-400 transition">Features</a>
+                <a href="#about" class="nav-link text-white hover:text-cyan-400 transition">About</a>
+                <a href="#" class="nav-link text-white hover:text-cyan-400 transition">GitHub</a>
+                <a href="#contact" class="nav-link text-white hover:text-cyan-400 transition">Contact</a>
+                <a href="#" class="px-6 py-2 rounded-full btn-cyan text-black font-bold">Get Started</a>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section id="hero" class="min-h-screen flex items-center pt-20 pb-16 relative overflow-hidden">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row items-center">
+            <!-- Text Content -->
+            <div class="md:w-1/2 mb-16 md:mb-0">
+                <h1 class="text-4xl md:text-6xl font-orbitron font-bold mb-6 text-cyan-400 glow-text">
+                    Map Your Skills<br>Like a Constellation
+                </h1>
+                <p class="text-lg md:text-xl mb-10 text-white opacity-90 max-w-lg">
+                    Visualize your abilities, track your progress, and discover hidden connections between your skills in an interactive galaxy of knowledge.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#" class="px-8 py-4 rounded-full btn-cyan text-black font-bold text-lg">
+                        Start Mapping Your Skills
+                    </a>
+                    <a href="#features" class="px-8 py-4 rounded-full btn-outline text-white font-bold text-lg">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Constellation Visual -->
+            <div class="md:w-1/2 relative flex justify-center">
+                <div class="relative w-full max-w-xl h-96 md:h-[500px]">
+                    <!-- Background nebula -->
+                    <div class="absolute inset-0 rounded-full bg-purple-900 opacity-20 blur-3xl"></div>
+                    
+                    <!-- Constellation container -->
+                    <div id="constellation" class="relative w-full h-full floating">
+                        <!-- Constellation nodes and lines will be added by JavaScript -->
+                    </div>
+                    
+                    <!-- Glowing rings -->
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border border-purple-500 border-opacity-30"></div>
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full border border-cyan-500 border-opacity-20"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section id="features" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-orbitron font-bold text-center mb-20 text-cyan-400 glow-text gradient-underline inline-block">
+                Why SkillMap?
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <!-- Feature Card 1 -->
+                <div class="glass-panel glow-border rounded-xl p-8 feature-card">
+                    <div class="w-16 h-16 mb-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Visualize Your Skills</h3>
+                    <p class="text-gray-300">
+                        Turn your abilities into an interactive constellation map that reveals connections and growth opportunities you never noticed before.
+                    </p>
+                </div>
+                
+                <!-- Feature Card 2 -->
+                <div class="glass-panel glow-border rounded-xl p-8 feature-card">
+                    <div class="w-16 h-16 mb-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Track Progress</h3>
+                    <p class="text-gray-300">
+                        Watch your skill stars grow brighter as you level up, with detailed analytics and milestone tracking to keep you motivated.
+                    </p>
+                </div>
+                
+                <!-- Feature Card 3 -->
+                <div class="glass-panel glow-border rounded-xl p-8 feature-card">
+                    <div class="w-16 h-16 mb-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Export Your Maps</h3>
+                    <p class="text-gray-300">
+                        Share your skill constellation with employers, mentors, or your future self as a stunning visual or detailed PDF report.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="py-20 relative border-t border-b border-cyan-500 border-opacity-30 bg-gradient-to-r from-purple-900/20 to-cyan-900/20">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-orbitron font-bold mb-6 text-white">
+                Ready to explore your own skill galaxy?
+            </h2>
+            <a href="#" class="inline-block px-12 py-5 rounded-full btn-cyan text-black font-bold text-xl mt-8">
+                Start Mapping Now
+            </a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="bg-black bg-opacity-60 backdrop-filter backdrop-blur-md pt-12 pb-8 relative">
+        <div class="container mx-auto px-6">
+            <div class="border-t border-cyan-500 border-opacity-30 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center space-x-2 mb-6 md:mb-0">
+                        <div class="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center">
+                            <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        </div>
+                        <span class="font-orbitron text-white">SkillMap</span>
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center gap-6 md:gap-10 mb-6 md:mb-0">
+                        <a href="#about" class="text-gray-300 hover:text-cyan-400 transition">About</a>
+                        <a href="#" class="text-gray-300 hover:text-cyan-400 transition">GitHub</a>
+                        <a href="#contact" class="text-gray-300 hover:text-cyan-400 transition">Contact</a>
+                        <a href="#" class="text-gray-300 hover:text-cyan-400 transition">Privacy</a>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-cyan-400 transition">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.09.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.293 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-cyan-400 transition">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-cyan-400 transition">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center text-gray-500 text-sm">
+                    &copy; 2025 SkillMap. All rights reserved. Made with <span class="text-cyan-400">♥</span> in the digital cosmos.
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Create star particles
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size and animation delay
+                const size = Math.random() * 2;
+                const delay = Math.random() * 5;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animationDelay = `${delay}s`;
+                
+                container.appendChild(star);
+            }
+        }
+        
+        // Create constellation
+        function createConstellation() {
+            const container = document.getElementById('constellation');
+            const nodeCount = 12;
+            const nodes = [];
+            
+            // Create nodes
+            for (let i = 0; i < nodeCount; i++) {
+                const node = document.createElement('div');
+                node.className = 'constellation-node';
+                
+                // Position nodes in a circular pattern with some randomness
+                const angle = (i / nodeCount) * Math.PI * 2;
+                const radius = 120 + Math.random() * 60;
+                const x = 50 + Math.cos(angle) * radius;
+                const y = 50 + Math.sin(angle) * radius;
+                
+                node.style.left = `${x}px`;
+                node.style.top = `${y}px`;
+                
+                // Random size
+                const size = 4 + Math.random() * 6;
+                node.style.width = `${size}px`;
+                node.style.height = `${size}px`;
+                
+                // Store node position for lines
+                nodes.push({ x, y });
+                
+                container.appendChild(node);
+            }
+            
+            // Create connecting lines
+            for (let i = 0; i < nodes.length; i++) {
+                // Connect each node to the next 2-3 nodes
+                const connections = Math.floor(2 + Math.random() * 2);
+                
+                for (let j = 1; j <= connections; j++) {
+                    const nextIndex = (i + j) % nodes.length;
+                    const line = document.createElement('div');
+                    line.className = 'constellation-line';
+                    
+                    const startNode = nodes[i];
+                    const endNode = nodes[nextIndex];
+                    
+                    // Calculate line position and length
+                    const dx = endNode.x - startNode.x;
+                    const dy = endNode.y - startNode.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    line.style.width = `${length}px`;
+                    line.style.left = `${startNode.x}px`;
+                    line.style.top = `${startNode.y}px`;
+                    line.style.transform = `rotate(${angle}deg)`;
+                    line.style.opacity = 0.6 + Math.random() * 0.3;
+                    
+                    container.appendChild(line);
+                }
+            }
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            createStars();
+            createConstellation();
+            
+            // Add parallax effect to hero background
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                
+                const hero = document.getElementById('hero');
+                hero.style.backgroundPosition = `${x * 30}px ${y * 30}px`;
+            });
+        });
+    </script>
+
+<script>
+  // Words that should trigger redirect
+  const redirectTexts = [
+    "Get Started",
+    "Start Mapping Your Skills",
+    "Start Mapping Now"
+  ];
+
+  // Check all buttons and links
+  document.querySelectorAll("button, a").forEach(el => {
+    const text = el.textContent.trim();
+    if (redirectTexts.includes(text)) {
+      el.addEventListener("click", () => {
+        window.location.href = "onboarding.html"; // change filename if needed
+      });
+    }
+  });
+</script>
+
+
+</body>
+</html>
